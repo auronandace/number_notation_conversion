@@ -8,35 +8,34 @@ fn main() {
         if input.trim().is_empty() {
             println!("Input cannot be empty. Try again.");
             continue;
-        } else {
-            let test_number = input.trim().to_owned();
-            match NumberNotation::detect_notation(test_number.chars().last().unwrap()) {
-                Ok(notation) => {
-                    if test_number.len() == 1 {
-                        let number: Vec<char> = test_number.chars().collect();
-                        if !number[0].is_ascii_digit() {
-                            println!("Input a number and notation. Try again.");
-                            continue;
-                        }
-                    }
-                    println!("Notation detected: {:?}", notation);
-                    match notation.validate(&test_number) {
-                        Ok(text_number) => {
-                            println!("To Binary: {}", notation.to_binary(text_number));
-                            println!("To Octal: {}", notation.to_octal(text_number));
-                            println!("To Decimal: {}", notation.to_decimal(text_number));
-                            println!("To Hexadecimal: {}", notation.to_hexadecimal(text_number));
-                            let decimal = notation.to_decimal(text_number).parse::<u64>().unwrap();
-                            println!("\nIn rust as a u64 decimal using display formatting (for comparison):");
-                            println!("{:b}\n{:o}\n{}\n{:x}", decimal, decimal, decimal, decimal);
-                        },
-                        Err(e) => {println!("{e}"); continue;},
-                    }
-                },
-                Err(e) => {println!("{e}"); continue;},
-            }
-            break;
         }
+        let test_number = input.trim().to_owned();
+        match NumberNotation::detect_notation(test_number.chars().last().unwrap()) {
+            Ok(notation) => {
+                if test_number.len() == 1 {
+                    let number: Vec<char> = test_number.chars().collect();
+                    if !number[0].is_ascii_digit() {
+                        println!("Input a number and notation. Try again.");
+                        continue;
+                    }
+                }
+                println!("Notation detected: {:?}", notation);
+                match notation.validate(&test_number) {
+                    Ok(number_as_text) => {
+                        println!("To Binary: {}", notation.to_binary(number_as_text));
+                        println!("To Octal: {}", notation.to_octal(number_as_text));
+                        println!("To Decimal: {}", notation.to_decimal(number_as_text));
+                        println!("To Hexadecimal: {}", notation.to_hexadecimal(number_as_text));
+                        let decimal = notation.to_decimal(number_as_text).parse::<u64>().unwrap();
+                        println!("\nIn rust as a u64 decimal using display formatting (for comparison):");
+                        println!("{:b}\n{:o}\n{}\n{:x}", decimal, decimal, decimal, decimal);
+                    },
+                    Err(e) => {println!("{e}"); continue;},
+                }
+            },
+            Err(e) => {println!("{e}"); continue;},
+        }
+        break;
     }
 }
 
@@ -61,25 +60,24 @@ impl NumberNotation {
     }
     // Check if number is valid for selected notation
     fn validate<'a>(&'a self, mut text: &'a str) -> Result<&str, NotationError> {
-        text = if !text.chars().last().unwrap().is_ascii_digit() {
-            text.strip_suffix(text.chars().last().unwrap()).unwrap()
-        } else {text};
+        text = if text.chars().last().unwrap().is_ascii_digit() {text}
+        else {text.strip_suffix(text.chars().last().unwrap()).unwrap()};
         text = strip_leading_zeros(text);
         if text.is_empty() {return Err(NotationError::Zero)}
         for character in text.chars() {char_to_number(character, *self)?;}
         Ok(text)
     }
     // Helper function for char_to_number
-    fn above_binary(&self) -> bool {
-        *self != Self::Binary
+    fn above_binary(self) -> bool {
+        self != Self::Binary
     }
     // Helper function for char_to_number
-    fn above_octal(&self) -> bool {
-        *self != Self::Binary && *self != Self::Octal
+    fn above_octal(self) -> bool {
+        self != Self::Binary && self != Self::Octal
     }
     // Helper function for char_to_number
-    fn above_decimal(&self) -> bool {
-        *self == Self::Hexadecimal
+    fn above_decimal(self) -> bool {
+        self == Self::Hexadecimal
     }
     // Make a binary string out of the input string
     fn to_binary(self, input: &str) -> String {
@@ -113,7 +111,7 @@ impl NumberNotation {
         for character in input.chars() {
             if let Ok(num) = char_to_number(character, self) {
                 output += from.pow(length) * num;
-                if length != 0 {length -= 1}
+                length = length.saturating_sub(1);
             }
         }
         output.to_string()
@@ -162,7 +160,7 @@ impl NumberNotation {
             Self::Binary => 2,
             Self::Octal => 8,
             Self::Hexadecimal => 16,
-            _ => unreachable!(),
+            Self::Decimal => unreachable!(),
         };
         let mut string_vec = Vec::new();
         let mut quotient = input.parse::<u64>().unwrap();
@@ -287,7 +285,7 @@ fn binary_str_to_char(input: &str) -> char {
 fn strip_leading_zeros(input: &str) -> &str {
     let mut zero_string = String::new();
     for character in input.chars() {if character == '0' {zero_string.push('0')} else {break;}}
-    if !zero_string.is_empty() {input.strip_prefix(&zero_string).unwrap()} else {input}
+    if zero_string.is_empty() {input} else {input.strip_prefix(&zero_string).unwrap()}
 }
 
 enum NotationError {
