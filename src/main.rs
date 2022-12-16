@@ -19,7 +19,7 @@ fn main() {
                         continue;
                     }
                 }
-                println!("Notation detected: {:?}", notation);
+                println!("Notation detected: {notation:?}");
                 match notation.validate(&test_number) {
                     Ok(number_as_text) => {
                         println!("To Binary: {}", notation.to_binary(number_as_text));
@@ -28,7 +28,7 @@ fn main() {
                         println!("To Hexadecimal: {}", notation.to_hexadecimal(number_as_text));
                         let decimal = notation.to_decimal(number_as_text).parse::<u64>().unwrap();
                         println!("\nIn rust as a u64 decimal using display formatting (for comparison):");
-                        println!("{:b}\n{:o}\n{}\n{:x}", decimal, decimal, decimal, decimal);
+                        println!("{decimal:b}\n{decimal:o}\n{decimal}\n{decimal:x}");
                     },
                     Err(e) => {println!("{e}"); continue;},
                 }
