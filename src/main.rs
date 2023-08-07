@@ -107,7 +107,7 @@ impl NumberNotation {
             Self::Hexadecimal => 16_u32,
         };
         let mut output = 0;
-        let mut length = (input.len() - 1) as u32;
+        let mut length = (input.len() - 1) as u32; // possible usize to u32 truncation
         for character in input.chars() {
             if let Ok(num) = char_to_number(character, self) {
                 output += from.pow(length) * num;
