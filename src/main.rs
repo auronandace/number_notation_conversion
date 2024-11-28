@@ -59,7 +59,7 @@ impl NumberNotation {
         }
     }
     // Check if number is valid for selected notation
-    fn validate<'a>(&'a self, mut text: &'a str) -> Result<&str, NotationError> {
+    fn validate<'a>(&'a self, mut text: &'a str) -> Result<&'a str, NotationError> {
         text = if text.chars().last().unwrap().is_ascii_digit() {text}
         else {text.strip_suffix(text.chars().last().unwrap()).unwrap()};
         text = strip_leading_zeros(text);
